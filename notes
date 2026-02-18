@@ -1,0 +1,2 @@
+To open database in terminal :
+sqlite3 user.db
