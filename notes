@@ -1,2 +1,3 @@
 To open database in terminal :
 sqlite3 user.db
+To run the code:flask run and python3 app.py
