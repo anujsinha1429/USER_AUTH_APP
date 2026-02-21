@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask,request,jsonify
+from flask import Flask,request,jsonify,session
 from werkzeug.security import generate_password_hash , check_password_hash
 import os 
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
@@ -7,6 +7,7 @@ DB_PATH=os.path.join(BASE_DIR,"user.db")
 
 
 app= Flask(__name__)
+app.secret_key="supersecretkey" 
 
 # @app.route("/")
 # def home():
@@ -64,10 +65,24 @@ def login():
     if user is None:
         return jsonify({"error":"user not found "}),404
     stored_hash=user[0]
-    if check_password_hash(stored_hash,password):
+    if check_password_hash(stored_hash,password): #ye password ka salt match krta hai 
+        session["username"]=username
         return jsonify({"message":"login successfulllly "}),200
     else:
         return jsonify({"error": "Invalid credential"}),400  
+    
+
+@app.route("/profile",methods=["GET"])
+def profile():
+    if "username" not in session:
+        return jsonify({"error":"unorthorized.please login"}),401
+    return jsonify({"message":f"welcome {session['username']}"})
+
+@app.route("/logout",methods=["GET"])
+def logout():
+    session.pop("username",None)
+    return jsonify({"message":"you are logged out "}),200
+
 if __name__=="__main__":
     initdb()
     app.run(debug=True)
