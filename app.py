@@ -21,7 +21,8 @@ def initdb():
     cursor=conn.cursor()
     cursor.execute(""" CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT,
                    username TEXT UNIQUE,
-                   password TEXT )
+                   password TEXT ,
+                   role TEXT)
 """)
     conn.commit()
     conn.close()
@@ -39,7 +40,7 @@ def signup():
         conn=sqlite3.connect(DB_PATH)
         cursor=conn.cursor()
         hashed_password=generate_password_hash(password)
-        cursor.execute(" INSERT INTO users (username ,password) VALUES (?,?)",(username,hashed_password))
+        cursor.execute(" INSERT INTO users (username ,password,role) VALUES (?,?,?)",(username,hashed_password,"user"))
         conn.commit()
         conn.close()
         return jsonify({"message ": "user created succcessfully"}),201
@@ -59,14 +60,16 @@ def login():
     conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
 
-    cursor.execute("SELECT password FROM users WHERE username =? ",(username,))
+    cursor.execute("SELECT password,role FROM users WHERE username =? ",(username,))
     user=cursor.fetchone()
     conn.close()
     if user is None:
         return jsonify({"error":"user not found "}),404
     stored_hash=user[0]
+    role=user[1]
     if check_password_hash(stored_hash,password): #ye password ka salt match krta hai 
         session["username"]=username
+        session["role"]=role
         return jsonify({"message":"login successfulllly "}),200
     else:
         return jsonify({"error": "Invalid credential"}),400  
@@ -82,6 +85,14 @@ def profile():
 def logout():
     session.pop("username",None)
     return jsonify({"message":"you are logged out "}),200
+
+@app.route("/admin",methods=["GET"])
+def admin():
+    if "username" not in session:
+        return jsonify({"error":"login required"}),401
+    if session.get("role")!="admin":
+        return jsonify({"error":"access denied"}),403
+    return jsonify({"message":f"welcome admin {session['username']}"}),200
 
 if __name__=="__main__":
     initdb()
