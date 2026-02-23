@@ -39,7 +39,7 @@ This project demonstrates how real websites handle login sessions securely using
 
 1. Clone the repository
 
-git clone https://github.com/YOUR_USERNAME/user_auth_app.git
+git clone https://github.com/anujsinha1429/USER_AUTH_APP.git
 cd user_auth_app
 
 2. Create virtual environment
